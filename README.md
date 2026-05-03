@@ -1,120 +1,116 @@
-# Continuous Delivery Infrastructure
+# 🚀 Continuous Delivery Infrastructure
 
-This repository contains the infrastructure and tooling necessary for a robust Continuous Delivery pipeline. Each tool is containerized using Docker Compose to ensure consistency across local development and production environments.
+[![Security Scan](https://img.shields.io/badge/security-scanned-success.svg)](#)
+[![Docker](https://img.shields.io/badge/docker-powered-blue.svg)](#)
+[![Maintenance](https://img.shields.io/badge/maintenance-active-green.svg)](#)
 
-## Directory Structure
+This repository serves as a centralized, modular, and containerized infrastructure for modern Continuous Delivery pipelines. It provides a suite of industry-standard tools for static code analysis, security scanning, and vulnerability management, all managed through a unified interface.
+
+## 🏗 Architecture Overview
+
+The project is designed with a "Tools-as-a-Service" philosophy. Each tool resides in its own directory within `tools/`, containing its `docker-compose.yml` and environment configuration.
 
 ```text
 .
 ├── tools/
-│   └── sonarqube/       # Static Code Analysis
+│   ├── sonarqube/        # Static Code Analysis (SAST) & Quality Gates
+│   ├── gitleaks/         # Secret Scanning (API Keys, Passwords)
+│   ├── trivy/            # Vulnerability Scanner (Containers, IaC, Dependencies)
+│   ├── defectdojo/       # Vulnerability Management Dashboard
+│   ├── dependency-check/ # OWASP Dependency Analysis (SCA)
+│   └── hadolint/         # Dockerfile Linter
+├── docs/
+│   └── PROJECT_INTEGRATION_PROMPT.md # AI-Powered Integration Guide
+├── Makefile              # Unified Management Interface
 └── README.md
 ```
 
-## Management with Makefile
+---
 
-To simplify management, a `Makefile` is provided at the root. You can control any tool using the `TOOL` variable.
+## 🛠 Management Interface
 
-### Commands
-- **Start**: `make up TOOL=sonarqube`
-- **Stop**: `make down TOOL=sonarqube`
-- **Logs**: `make logs TOOL=sonarqube`
-- **Status**: `make status TOOL=sonarqube`
-- **Restart**: `make restart TOOL=sonarqube`
+A central `Makefile` is provided to abstract the complexity of Docker Compose. You can manage any tool using the `TOOL` variable.
 
-## Tools
+### Core Commands
+| Action | Command | Description |
+| :--- | :--- | :--- |
+| **Start** | `make up TOOL=<name>` | Provisions and starts the tool (auto-creates `.env`) |
+| **Stop** | `make down TOOL=<name>` | Stops and removes containers |
+| **Restart** | `make restart TOOL=<name>` | Restarts the specified service |
+| **Logs** | `make logs TOOL=<name>` | Streams live logs from the container |
+| **Status** | `make status TOOL=<name>` | Checks the health and status of containers |
+| **Shell** | `make shell TOOL=<name>` | Opens an interactive terminal inside the container |
 
-### 1. SonarQube
-...
-#### Setup
-1. **Host Config**: Ensure `vm.max_map_count=262144` is set.
-2. **Start**:
-   ```bash
-   make up TOOL=sonarqube
-   ```
-3. **Configure**: Update the generated `tools/sonarqube/.env` if necessary.
+---
 
-### 2. Gitleaks
-Gitleaks is a SAST tool for detecting and preventing hardcoded secrets like passwords, api keys, and tokens in git repos.
+## 🔍 Tooling Inventory
 
-#### Usage
-To scan the entire repository history:
-```bash
-make up TOOL=gitleaks
-```
-*Note: Since Gitleaks is a one-off scan, the container will exit once the scan is complete. You can view the results in the terminal output.*
+### 1. SonarQube (Static Analysis)
+SonarQube provides continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
+- **Access**: `http://localhost:9000`
+- **Default Login**: `admin / admin` (Change on first login)
+- **Setup**: Ensure your host has `vm.max_map_count=262144` set.
 
-#### View Results
-```bash
-make logs TOOL=gitleaks
-```
+### 2. Gitleaks (Secret Detection)
+A SAST tool for detecting hardcoded secrets like passwords, API keys, and tokens in git repositories.
+- **Usage**: `make up TOOL=gitleaks`
+- **Output**: Scan results appear in the container logs (`make logs TOOL=gitleaks`).
 
-### 3. Trivy
-Trivy is a comprehensive security scanner for container images, file systems, and git repositories. It detects vulnerabilities (CVEs), misconfigurations, and secrets.
+### 3. Trivy (Security Scanner)
+A comprehensive security scanner for container images, file systems, and git repositories.
+- **Scanners**: Vulnerabilities (CVEs), Misconfigurations (IaC), and Secrets.
+- **Usage**: `make up TOOL=trivy`
 
-#### Usage
-To scan the project for vulnerabilities and misconfigurations:
-```bash
-make up TOOL=trivy
-```
-*Note: Like Gitleaks, Trivy is a one-off scan. Use `make logs TOOL=trivy` if the output doesn't appear immediately.*
+### 4. DefectDojo (Vulnerability Management)
+An open-source vulnerability management tool that streamlines the testing process by offering a hub for vulnerability findings.
+- **Access**: `http://localhost:8080`
+- **Setup**: Update `tools/defectdojo/.env` with secure credentials before the first run.
+- **Integration**: Ideal for centralizing reports from all other tools in this repo.
 
-#### Scanners Enabled
-- **vuln**: Software Composition Analysis (SCA) - scans dependencies.
-- **config**: Infrastructure as Code (IaC) - scans Dockerfiles, etc.
-- **secret**: Detects hardcoded secrets (complements Gitleaks).
+### 5. OWASP Dependency-Check (SCA)
+Identifies project dependencies and checks if there are any known, publicly disclosed vulnerabilities.
+- **Usage**: `make up TOOL=dependency-check`
+- **Note**: The initial run takes longer as it downloads the NVD (National Vulnerability Database).
 
-### 4. DefectDojo
-DefectDojo is an open-source vulnerability management tool that streamlines the testing process by offering a hub for vulnerability findings.
+### 6. Hadolint (Dockerfile Linter)
+A smarter Dockerfile linter that helps you build best practice Docker images.
+- **Usage**: `make up TOOL=hadolint`
+- **Auto-Discovery**: Scans all `Dockerfile` files found in the project root recursively.
 
-#### Setup
-1. **Prepare Environment**:
-   ```bash
-   make up TOOL=defectdojo
-   ```
-2. **Configure**: Update `tools/defectdojo/.env` with a strong `DD_SECRET_KEY` and safe passwords.
-3. **Wait**: The first startup involves database migrations and can take a couple of minutes.
+---
 
-#### Access
-Access the dashboard at `http://localhost:8080`.
-- **Default Login**: `admin` (or what you set in `.env`)
-- **Default Password**: (defined in `.env`)
+## 🤖 AI-Powered Integration
 
-#### Integration
-You can import reports from SonarQube, Gitleaks, and Trivy directly into DefectDojo to centralize your security posture.
+One of the most powerful features of this repository is the **Master Prompt**. It allows you to quickly integrate this entire infrastructure into any of your existing projects using AI.
 
-### 5. Dependency-Check (OWASP)
-OWASP Dependency-Check is a Software Composition Analysis (SCA) tool that attempts to detect publicly disclosed vulnerabilities contained within a project’s dependencies.
+👉 **[Read the Project Integration Guide (Portuguese)](docs/PROJECT_INTEGRATION_PROMPT.md)**
 
-#### Usage
-```bash
-make up TOOL=dependency-check
-```
-*Note: The first run will download a large database of vulnerabilities (NVD). This can take several minutes.*
+Using the prompt provided in that guide, you can ask an AI to:
+1. Detect your project's technology stack.
+2. Generate `ci-scan.sh` scripts that point to this infra.
+3. Configure `sonar-project.properties` automatically.
+4. Setup automated uploads to DefectDojo.
 
-### 6. Hadolint
-Hadolint is a smarter Dockerfile linter that helps you build best practice Docker images.
+---
 
-#### Usage
-```bash
-make up TOOL=hadolint
-```
-*Note: It will automatically find and scan all files named `Dockerfile` in the repository.*
+## 🛡 Security Best Practices
 
-#### Access
-Access the dashboard at `http://localhost:9000` (or the port defined in `.env`).
-- **Default Login**: `admin`
-- **Default Password**: `admin`
-*(You will be prompted to change the password on first login)*
+- **Environment Isolation**: All tools run in dedicated Docker networks.
+- **Secret Management**: `.env` files are never committed. Use the provided `.env.example` as a template.
+- **Persistence**: Data is persisted via Docker volumes, ensuring no loss of analysis history between restarts.
+- **Least Privilege**: Scanners like Hadolint and Gitleaks mount the codebase as `read-only` (`:ro`).
 
-## Security Best Practices
-- **Never commit `.env` files**: Secrets are managed via environment variables and excluded from Git.
-- **Dedicated Networks**: Containers communicate over isolated Docker networks.
-- **Resource Limits**: Configured via `ulimits` and volumes for persistence.
-- **Updates**: Use the `SONARQUBE_VERSION` variable in `.env` to manage upgrades safely.
+---
 
-## Future Roadmap
-- [ ] Jenkins / GitLab Runner integration
-- [ ] Docker Registry (Harbor)
-- [ ] Monitoring (Prometheus/Grafana)
-- [ ] Security Scanning (Trivy/Snyk)
+## 🗺 Roadmap
+
+- [x] Core Security Tooling (SonarQube, Gitleaks, Trivy)
+- [x] Vulnerability Management (DefectDojo)
+- [x] Docker Best Practices (Hadolint)
+- [ ] Jenkins / GitLab CI Integration Examples
+- [ ] Centralized Auth (Keycloak)
+- [ ] Monitoring Dashboard (Grafana/Prometheus)
+
+---
+
+Developed by [Gustavo Hyppolito](https://github.com/ghyppolito)
