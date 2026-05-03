@@ -1,0 +1,17 @@
+# Docker
+.env
+*.log
+
+# SonarQube / Database Persistence (Local folders if used instead of named volumes)
+data/
+logs/
+extensions/
+postgresql/
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
