@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  dependency-check:
+    image: owasp/dependency-check:latest
+    container_name: dependency-check
+    volumes:
+      - ../../:/src:ro
+      - ./odc-data:/usr/share/dependency-check/data
+      - ./reports:/report
+    # --project: project name
+    # --scan: path to scan
+    # --format: output formats
+    # --out: output directory
+    command: --project "Continuous Delivery" --scan /src --format ALL --out /report

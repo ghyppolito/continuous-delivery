@@ -45,7 +45,7 @@ check-tool:
 
 up: check-tool
 	@echo "$(BLUE)Starting $(TOOL)...$(RESET)"
-	@if [ ! -f $(ENV_FILE) ]; then \
+	@if [ ! -f $(ENV_FILE) ] && [ -f $(ENV_EXAMPLE) ]; then \
 		echo "Creating .env from example..."; \
 		cp $(ENV_EXAMPLE) $(ENV_FILE); \
 	fi
