@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  gitleaks:
+    image: zricethezav/gitleaks:latest
+    container_name: gitleaks
+    volumes:
+      - ../../:/code:ro
+    # Detect secrets in the repository history
+    command: detect --source="/code" --verbose --redact
+    # Alternatively, use 'protect' to scan only uncommitted changes
+    # command: protect --source="/code" --staged --verbose

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  hadolint:
+    image: hadolint/hadolint:latest-alpine
+    container_name: hadolint
+    volumes:
+      - ../../:/code:ro
+    # Search for all files named Dockerfile and lint them
+    entrypoint: ["/bin/sh", "-c"]
+    command: 
+      - |
+        find /code -name "Dockerfile" -exec hadolint {} + || true

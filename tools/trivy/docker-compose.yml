@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  trivy:
+    image: aquasec/trivy:latest
+    container_name: trivy
+    volumes:
+      - ../../:/code:ro
+      - trivy_cache:/root/.cache
+    # fs: scan file system (SCA and IaC)
+    # config: scan configuration files
+    command: fs /code --severity HIGH,CRITICAL --scanners vuln,config,secret
+
+volumes:
+  trivy_cache:
